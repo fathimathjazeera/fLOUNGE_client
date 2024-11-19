@@ -64,6 +64,17 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
     });
   }
 
+
+  function handleBuyItem(){
+
+
+
+
+  }
+
+
+
+  
   function handleDialogClose() {
     setOpen(false);
     dispatch(setProductDetails());
@@ -151,8 +162,10 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
                 Out of Stock
               </Button>
             ) : (
+              <>
+            
               <Button
-                className="w-full"
+                className="w-full mb-5 bg-white text-black border border-black hover:text-white"
                 onClick={() =>
                   handleAddToCart(
                     productDetails?._id,
@@ -162,6 +175,18 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
               >
                 Add to Cart
               </Button>
+              <Button
+                className="w-full"
+                onClick={() =>
+                  handleBuyItem(
+                    productDetails?._id,
+                    productDetails?.totalStock
+                  )
+                }
+              >
+               Buy Now
+              </Button>
+              </>
             )}
           </div>
           <Separator />

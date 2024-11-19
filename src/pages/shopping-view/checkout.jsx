@@ -1,26 +1,25 @@
-import Address from "@/components/shopping-view/address";
-import img from "../../assets/account.jpg";
+import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { createNewOrder } from "@/store/shop/order-slice";
+import { useToast } from "@/components/ui/use-toast";
+import Address from "@/components/shopping-view/address";
 import UserCartItemsContent from "@/components/shopping-view/cart-items-content";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
-import { createNewOrder } from "@/store/shop/order-slice";
-import { Navigate } from "react-router-dom";
-import { useToast } from "@/components/ui/use-toast";
-
+import { Dialog, DialogTrigger, DialogContent, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import img from '../../assets/account.jpg'
+import { Label } from "@/components/ui/label";
 function ShoppingCheckout() {
   const { cartItems } = useSelector((state) => state.shopCart);
   const { user } = useSelector((state) => state.auth);
   const { approvalURL } = useSelector((state) => state.shopOrder);
   const [currentSelectedAddress, setCurrentSelectedAddress] = useState(null);
-  const [isPaymentStart, setIsPaymemntStart] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState("COD");
   const dispatch = useDispatch();
   const { toast } = useToast();
-
-  console.log(currentSelectedAddress, "cartItems");
-
+console.log(paymentMethod,"paymentmethod")
   const totalCartAmount =
-    cartItems && cartItems.items && cartItems.items.length > 0
+    cartItems?.items?.length > 0
       ? cartItems.items.reduce(
           (sum, currentItem) =>
             sum +
@@ -32,36 +31,33 @@ function ShoppingCheckout() {
         )
       : 0;
 
-  function handleInitiatePaypalPayment() {
-    if (cartItems.length === 0) {
+  function handleCheckout() {
+
+    if (!cartItems?.items?.length) {
       toast({
-        title: "Your cart is empty. Please add items to proceed",
+        title: "Your cart is empty. Please add items to proceed.",
         variant: "destructive",
       });
-
       return;
     }
-    if (currentSelectedAddress === null) {
+
+    if (!currentSelectedAddress) {
       toast({
-        title: "Please select one address to proceed.",
+        title: "Please select an address to proceed.",
         variant: "destructive",
       });
-
       return;
     }
 
     const orderData = {
       userId: user?.id,
       cartId: cartItems?._id,
-      cartItems: cartItems.items.map((singleCartItem) => ({
-        productId: singleCartItem?.productId,
-        title: singleCartItem?.title,
-        image: singleCartItem?.image,
-        price:
-          singleCartItem?.salePrice > 0
-            ? singleCartItem?.salePrice
-            : singleCartItem?.price,
-        quantity: singleCartItem?.quantity,
+      cartItems: cartItems.items.map((item) => ({
+        productId: item?.productId,
+        title: item?.title,
+        image: item?.image,
+        price: item?.salePrice > 0 ? item?.salePrice : item?.price,
+        quantity: item?.quantity,
       })),
       addressInfo: {
         addressId: currentSelectedAddress?._id,
@@ -72,27 +68,41 @@ function ShoppingCheckout() {
         notes: currentSelectedAddress?.notes,
       },
       orderStatus: "pending",
-      paymentMethod: "paypal",
+      paymentMethod,
       paymentStatus: "pending",
       totalAmount: totalCartAmount,
       orderDate: new Date(),
       orderUpdateDate: new Date(),
-      paymentId: "",
-      payerId: "",
     };
 
-    dispatch(createNewOrder(orderData)).then((data) => {
-      console.log(data, "sangam");
-      if (data?.payload?.success) {
-        setIsPaymemntStart(true);
-      } else {
-        setIsPaymemntStart(false);
-      }
-    });
-  }
+    if (paymentMethod === "paypal") {
+      dispatch(createNewOrder(orderData)).then((data) => {
+        if (data?.payload?.success) {
+          window.location.href = approvalURL;
+        } else {
+          toast({
+            title: "PayPal payment initiation failed.",
+            variant: "destructive",
+          });
+        }
+      });
+    } else if (paymentMethod === "cod") {
+      orderData.paymentStatus = "pending";
+      orderData.orderStatus = "placed";
 
-  if (approvalURL) {
-    window.location.href = approvalURL;
+      dispatch(createNewOrder(orderData)).then((data) => {
+        if (data?.payload?.success) {
+          toast({
+            title: "Order placed successfully with COD.",
+          });
+        } else {
+          toast({
+            title: "Failed to place COD order.",
+            variant: "destructive",
+          });
+        }
+      });
+    }
   }
 
   return (
@@ -106,24 +116,60 @@ function ShoppingCheckout() {
           setCurrentSelectedAddress={setCurrentSelectedAddress}
         />
         <div className="flex flex-col gap-4">
-          {cartItems && cartItems.items && cartItems.items.length > 0
-            ? cartItems.items.map((item) => (
-                <UserCartItemsContent cartItem={item} />
-              ))
-            : null}
+          {cartItems?.items?.map((item) => (
+            <UserCartItemsContent key={item.productId} cartItem={item} />
+          ))}
           <div className="mt-8 space-y-4">
             <div className="flex justify-between">
               <span className="font-bold">Total</span>
               <span className="font-bold">${totalCartAmount}</span>
             </div>
           </div>
-          <div className="mt-4 w-full">
-            <Button onClick={handleInitiatePaypalPayment} className="w-full">
-              {isPaymentStart
-                ? "Processing Paypal Payment..."
-                : "Checkout with Paypal"}
-            </Button>
-          </div>
+
+          {/* Checkout Button - Opens Payment Method Dialog */}
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button className="w-full">Checkout</Button>
+            </DialogTrigger>
+            <DialogContent>
+              {/* Dialog Title */}
+              <DialogTitle className="text-lg font-semibold">
+                Select Payment Method
+              </DialogTitle>
+              <DialogDescription className="mb-0">
+                Please choose your preferred payment method to complete the checkout.
+              </DialogDescription>
+              <RadioGroup
+               
+              >
+              </RadioGroup>
+              <RadioGroup 
+               value={paymentMethod}
+               onValueChange={setPaymentMethod}
+               className="space-y-2 flex flex-col"
+              >
+  <div className="flex items-center space-x-2">
+    <RadioGroupItem value="paypal" id="paypal" />
+    <Label htmlFor="paypal">Pay with PayPal</Label>
+  </div>
+  <div className="flex items-center space-x-2">
+    <RadioGroupItem value="COD" id="COD" />
+    <Label htmlFor="COD">Pay with Cash on Delivery (COD)</Label>
+  </div>
+</RadioGroup>
+
+              <DialogFooter>
+                <Button
+                  onClick={() => {
+                    handleCheckout();
+                  }}
+                  className="w-full"
+                >
+                  Continue with {paymentMethod === "paypal" ? "PayPal" : "COD"}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
     </div>
