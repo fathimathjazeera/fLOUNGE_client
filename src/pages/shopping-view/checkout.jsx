@@ -1,23 +1,34 @@
-import { useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { createNewOrder } from "@/store/shop/order-slice";
-import { useToast } from "@/components/ui/use-toast";
-import Address from "@/components/shopping-view/address";
-import UserCartItemsContent from "@/components/shopping-view/cart-items-content";
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogTrigger, DialogContent, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import img from '../../assets/account.jpg'
-import { Label } from "@/components/ui/label";
+import { useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { createNewOrder } from '@/store/shop/order-slice';
+import { useToast } from '@/components/ui/use-toast';
+import Address from '@/components/shopping-view/address';
+import UserCartItemsContent from '@/components/shopping-view/cart-items-content';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import img from '../../assets/account.jpg';
+import { Label } from '@/components/ui/label';
+import { useNavigate} from 'react-router-dom';
+
 function ShoppingCheckout() {
   const { cartItems } = useSelector((state) => state.shopCart);
   const { user } = useSelector((state) => state.auth);
   const { approvalURL } = useSelector((state) => state.shopOrder);
   const [currentSelectedAddress, setCurrentSelectedAddress] = useState(null);
-  const [paymentMethod, setPaymentMethod] = useState("COD");
+  const [paymentMethod, setPaymentMethod] = useState('COD');
+  const [isDialogOpen, setIsDialogOpen] = useState(false); // Control the modal state
   const dispatch = useDispatch();
   const { toast } = useToast();
-console.log(paymentMethod,"paymentmethod")
+const navigate = useNavigate()
+
   const totalCartAmount =
     cartItems?.items?.length > 0
       ? cartItems.items.reduce(
@@ -32,19 +43,18 @@ console.log(paymentMethod,"paymentmethod")
       : 0;
 
   function handleCheckout() {
-
     if (!cartItems?.items?.length) {
       toast({
-        title: "Your cart is empty. Please add items to proceed.",
-        variant: "destructive",
+        title: 'Your cart is empty. Please add items to proceed.',
+        variant: 'destructive',
       });
       return;
     }
 
     if (!currentSelectedAddress) {
       toast({
-        title: "Please select an address to proceed.",
-        variant: "destructive",
+        title: 'Please select an address to proceed.',
+        variant: 'destructive',
       });
       return;
     }
@@ -67,38 +77,37 @@ console.log(paymentMethod,"paymentmethod")
         phone: currentSelectedAddress?.phone,
         notes: currentSelectedAddress?.notes,
       },
-      orderStatus: "pending",
+      orderStatus: 'pending',
       paymentMethod,
-      paymentStatus: "pending",
+      paymentStatus: 'pending',
       totalAmount: totalCartAmount,
       orderDate: new Date(),
       orderUpdateDate: new Date(),
     };
 
-    if (paymentMethod === "paypal") {
+    if (paymentMethod === 'paypal') {
       dispatch(createNewOrder(orderData)).then((data) => {
         if (data?.payload?.success) {
-          window.location.href = approvalURL;
+          window.location.href = data.payload.approvalURL;
         } else {
           toast({
-            title: "PayPal payment initiation failed.",
-            variant: "destructive",
+            title: 'PayPal payment initiation failed.',
+            variant: 'destructive',
           });
         }
       });
-    } else if (paymentMethod === "cod") {
-      orderData.paymentStatus = "pending";
-      orderData.orderStatus = "placed";
+    } else if (paymentMethod === 'COD') {
+      orderData.paymentStatus = 'pending';
+      orderData.orderStatus = 'placed';
 
       dispatch(createNewOrder(orderData)).then((data) => {
         if (data?.payload?.success) {
-          toast({
-            title: "Order placed successfully with COD.",
-          });
+     navigate('/shop/order-success');
+          setIsDialogOpen(false); 
         } else {
           toast({
-            title: "Failed to place COD order.",
-            variant: "destructive",
+            title: 'Failed to place COD order.',
+            variant: 'destructive',
           });
         }
       });
@@ -108,7 +117,7 @@ console.log(paymentMethod,"paymentmethod")
   return (
     <div className="flex flex-col">
       <div className="relative h-[300px] w-full overflow-hidden">
-        <img src={img} className="h-full w-full object-cover object-center" />
+        <img src={img} className="h-full w-full object-cover object-center" alt="Account" />
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mt-5 p-5">
         <Address
@@ -126,13 +135,13 @@ console.log(paymentMethod,"paymentmethod")
             </div>
           </div>
 
-          {/* Checkout Button - Opens Payment Method Dialog */}
-          <Dialog>
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="w-full">Checkout</Button>
+              <Button className="w-full" onClick={() => setIsDialogOpen(true)}>
+                Checkout
+              </Button>
             </DialogTrigger>
             <DialogContent>
-              {/* Dialog Title */}
               <DialogTitle className="text-lg font-semibold">
                 Select Payment Method
               </DialogTitle>
@@ -140,32 +149,26 @@ console.log(paymentMethod,"paymentmethod")
                 Please choose your preferred payment method to complete the checkout.
               </DialogDescription>
               <RadioGroup
-               
+                value={paymentMethod}
+                onValueChange={setPaymentMethod}
+                className="space-y-2 flex flex-col"
               >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="paypal" id="paypal" />
+                  <Label htmlFor="paypal">Pay with PayPal</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="COD" id="COD" />
+                  <Label htmlFor="COD">Pay with Cash on Delivery (COD)</Label>
+                </div>
               </RadioGroup>
-              <RadioGroup 
-               value={paymentMethod}
-               onValueChange={setPaymentMethod}
-               className="space-y-2 flex flex-col"
-              >
-  <div className="flex items-center space-x-2">
-    <RadioGroupItem value="paypal" id="paypal" />
-    <Label htmlFor="paypal">Pay with PayPal</Label>
-  </div>
-  <div className="flex items-center space-x-2">
-    <RadioGroupItem value="COD" id="COD" />
-    <Label htmlFor="COD">Pay with Cash on Delivery (COD)</Label>
-  </div>
-</RadioGroup>
 
               <DialogFooter>
                 <Button
-                  onClick={() => {
-                    handleCheckout();
-                  }}
+                  onClick={handleCheckout}
                   className="w-full"
                 >
-                  Continue with {paymentMethod === "paypal" ? "PayPal" : "COD"}
+                  Continue with {paymentMethod === 'paypal' ? 'PayPal' : 'COD'}
                 </Button>
               </DialogFooter>
             </DialogContent>
