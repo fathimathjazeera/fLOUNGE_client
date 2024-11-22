@@ -1,37 +1,34 @@
-import { StarIcon } from "lucide-react";
-import { Avatar, AvatarFallback } from "../ui/avatar";
-import { Button } from "../ui/button";
-import { Dialog, DialogContent } from "../ui/dialog";
-import { Separator } from "../ui/separator";
-import { Input } from "../ui/input";
-import { useDispatch, useSelector } from "react-redux";
-import { addToCart, fetchCartItems } from "@/store/shop/cart-slice";
-import { useToast } from "../ui/use-toast";
-import { setProductDetails } from "@/store/shop/products-slice";
-import { Label } from "../ui/label";
-import StarRatingComponent from "../common/star-rating";
-import { useEffect, useState } from "react";
-import { addReview, getReviews } from "@/store/shop/review-slice";
+import { useState,useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+import { useToast } from '../ui/use-toast';
+import { Dialog, DialogContent } from '../ui/dialog';
+import StarRatingComponent from '../common/star-rating';
+import { Button } from '../ui/button';
+import { Avatar, AvatarFallback } from '../ui/avatar';
+import { Separator } from '../ui/separator';
+import { Label } from '../ui/label';
+import { Input } from '../ui/input';
+import { addReview, getReviews } from '@/store/shop/review-slice';
+import { fetchCartItems } from '@/store/shop/cart-slice';
+import { setProductDetails } from '@/store/shop/products-slice';
 
 function ProductDetailsDialog({ open, setOpen, productDetails }) {
+  const navigate = useNavigate();  
   const [reviewMsg, setReviewMsg] = useState("");
   const [rating, setRating] = useState(0);
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
   const { cartItems } = useSelector((state) => state.shopCart);
   const { reviews } = useSelector((state) => state.shopReview);
-
   const { toast } = useToast();
 
   function handleRatingChange(getRating) {
-    console.log(getRating, "getRating");
-
     setRating(getRating);
   }
 
   function handleAddToCart(getCurrentProductId, getTotalStock) {
     let getCartItems = cartItems.items || [];
-
     if (getCartItems.length) {
       const indexOfCurrentItem = getCartItems.findIndex(
         (item) => item.productId === getCurrentProductId
@@ -43,7 +40,6 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
             title: `Only ${getQuantity} quantity can be added for this item`,
             variant: "destructive",
           });
-
           return;
         }
       }
@@ -64,17 +60,10 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
     });
   }
 
-
-  function handleBuyItem(){
-
-
-
-
+  function handleBuyItem(getCurrentProductId, getTotalStock) {
+    navigate('/shop/checkout', { state: productDetails });
   }
 
-
-
-  
   function handleDialogClose() {
     setOpen(false);
     dispatch(setProductDetails());
@@ -92,7 +81,7 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
         reviewValue: rating,
       })
     ).then((data) => {
-      if (data.payload.success) {
+      if (data?.payload?.success) {
         setRating(0);
         setReviewMsg("");
         dispatch(getReviews(productDetails?._id));
@@ -163,29 +152,27 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
               </Button>
             ) : (
               <>
-            
-              <Button
-                className="w-full mb-5 bg-white text-black border border-black hover:text-white"
-                onClick={() =>
-                  handleAddToCart(
-                    productDetails?._id,
-                    productDetails?.totalStock
-                  )
-                }
-              >
-                Add to Cart
-              </Button>
-              <Button
-                className="w-full"
-                onClick={() =>
-                  handleBuyItem(
-                    productDetails?._id,
-                    productDetails?.totalStock
-                  )
-                }
-              >
-               Buy Now
-              </Button>
+                <Button
+                  className="w-full mb-5 bg-white text-black border border-black hover:text-white"
+                  onClick={() =>
+                    handleAddToCart(
+                      productDetails?._id,
+                      productDetails?.totalStock
+                    )
+                  }
+                >
+                  Add to Cart
+                </Button>
+                <Button
+                  className="w-full"
+                  onClick={() =>
+                    handleBuyItem(
+                      productDetails
+                    )
+                  }
+                >
+                  Buy Now
+                </Button>
               </>
             )}
           </div>

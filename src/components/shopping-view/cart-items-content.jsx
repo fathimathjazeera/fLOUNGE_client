@@ -89,6 +89,7 @@ function UserCartItemsContent({ cartItem }) {
             onClick={() => handleUpdateQuantity(cartItem, "minus")}
           >
             <Minus className="w-4 h-4" />
+            
             <span className="sr-only">Decrease</span>
           </Button>
           <span className="font-semibold">{cartItem?.quantity}</span>
@@ -111,6 +112,7 @@ function UserCartItemsContent({ cartItem }) {
             cartItem?.quantity
           ).toFixed(2)}
         </p>
+       
         <Trash
           onClick={() => handleCartItemDelete(cartItem)}
           className="cursor-pointer mt-1"

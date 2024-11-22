@@ -17,7 +17,7 @@ function OrderSuccess() {
         <h1 className="text-2xl font-bold text-gray-800">Order Placed!</h1>
         <p className="text-gray-600">Thank you for your order. It has been successfully placed.</p>
         <Button
-          onClick={() => navigate('/shop/orders')} 
+          onClick={() => navigate('/shop/account')} 
           className="mt-4 w-full sm:w-auto"
         >
           Go to Orders

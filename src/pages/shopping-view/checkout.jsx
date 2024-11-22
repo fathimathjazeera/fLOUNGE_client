@@ -16,41 +16,60 @@ import {
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import img from '../../assets/account.jpg';
 import { Label } from '@/components/ui/label';
-import { useNavigate} from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 function ShoppingCheckout() {
+  const location = useLocation();
+  const selectedProduct = location?.state || null;
   const { cartItems } = useSelector((state) => state.shopCart);
   const { user } = useSelector((state) => state.auth);
   const { approvalURL } = useSelector((state) => state.shopOrder);
-  const [currentSelectedAddress, setCurrentSelectedAddress] = useState(null);
-  const [paymentMethod, setPaymentMethod] = useState('COD');
-  const [isDialogOpen, setIsDialogOpen] = useState(false); // Control the modal state
   const dispatch = useDispatch();
   const { toast } = useToast();
-const navigate = useNavigate()
+  const navigate = useNavigate();
 
-  const totalCartAmount =
-    cartItems?.items?.length > 0
-      ? cartItems.items.reduce(
-          (sum, currentItem) =>
-            sum +
-            (currentItem?.salePrice > 0
-              ? currentItem?.salePrice
-              : currentItem?.price) *
-              currentItem?.quantity,
-          0
-        )
-      : 0;
+  const [currentSelectedAddress, setCurrentSelectedAddress] = useState(null);
+  const [paymentMethod, setPaymentMethod] = useState('COD');
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  // Use cart items directly if no selectedProduct
+  const itemsToCheckout = selectedProduct
+    ? [
+        {
+          productId: selectedProduct._id,
+          title: selectedProduct.title,
+          image: selectedProduct.image,
+          price:
+            selectedProduct.salePrice > 0
+              ? selectedProduct.salePrice
+              : selectedProduct.price,
+          quantity: 1,
+          salePrice: selectedProduct.salePrice,
+        },
+      ]
+    : cartItems?.items || [];
+
+  const totalAmount = itemsToCheckout.reduce((sum, item) => {
+    const price =
+      typeof item?.salePrice === 'number' && item.salePrice > 0
+        ? item.salePrice
+        : typeof item?.price === 'number' && item.price > 0
+        ? item.price
+        : 0;
+    const quantity = item?.quantity || 0;
+
+    return sum + price * quantity;
+  }, 0);
 
   function handleCheckout() {
-    if (!cartItems?.items?.length) {
+    if (!itemsToCheckout.length) {
       toast({
-        title: 'Your cart is empty. Please add items to proceed.',
+        title: 'No items to checkout.',
         variant: 'destructive',
       });
       return;
     }
-
+  
     if (!currentSelectedAddress) {
       toast({
         title: 'Please select an address to proceed.',
@@ -58,16 +77,15 @@ const navigate = useNavigate()
       });
       return;
     }
-
+  
     const orderData = {
       userId: user?.id,
-      cartId: cartItems?._id,
-      cartItems: cartItems.items.map((item) => ({
-        productId: item?.productId,
-        title: item?.title,
-        image: item?.image,
-        price: item?.salePrice > 0 ? item?.salePrice : item?.price,
-        quantity: item?.quantity,
+      cartItems: itemsToCheckout.map((item) => ({
+        productId: item.productId,
+        title: item.title,
+        image: item.image,
+        price: item.salePrice > 0 ? item.salePrice : item.price,
+        quantity: item.quantity || 1,
       })),
       addressInfo: {
         addressId: currentSelectedAddress?._id,
@@ -80,30 +98,38 @@ const navigate = useNavigate()
       orderStatus: 'pending',
       paymentMethod,
       paymentStatus: 'pending',
-      totalAmount: totalCartAmount,
+      totalAmount,
       orderDate: new Date(),
-      orderUpdateDate: new Date(),
     };
-
+  
     if (paymentMethod === 'paypal') {
+      console.log('Payment method is PayPal');
       dispatch(createNewOrder(orderData)).then((data) => {
+        console.log('Order creation response:', data);
         if (data?.payload?.success) {
-          window.location.href = data.payload.approvalURL;
-        } else {
-          toast({
-            title: 'PayPal payment initiation failed.',
-            variant: 'destructive',
-          });
+          // Check if approvalURL is now available in the Redux store or response
+          const approvalURL = data?.payload?.approvalURL;
+          if (approvalURL) {
+            // Redirect to PayPal approval page
+            window.location.href = approvalURL;
+          } else {
+            toast({
+              title: 'PayPal approval URL is missing.',
+              variant: 'destructive',
+            });
+          }
         }
       });
     } else if (paymentMethod === 'COD') {
       orderData.paymentStatus = 'pending';
       orderData.orderStatus = 'placed';
-
+  
       dispatch(createNewOrder(orderData)).then((data) => {
         if (data?.payload?.success) {
-     navigate('/shop/order-success');
-          setIsDialogOpen(false); 
+          toast({
+            title: 'Order placed successfully with COD.',
+          });
+          navigate('/shop/order-success');
         } else {
           toast({
             title: 'Failed to place COD order.',
@@ -113,11 +139,16 @@ const navigate = useNavigate()
       });
     }
   }
+  
 
   return (
     <div className="flex flex-col">
       <div className="relative h-[300px] w-full overflow-hidden">
-        <img src={img} className="h-full w-full object-cover object-center" alt="Account" />
+        <img
+          src={img}
+          className="h-full w-full object-cover object-center"
+          alt="Account"
+        />
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mt-5 p-5">
         <Address
@@ -125,16 +156,16 @@ const navigate = useNavigate()
           setCurrentSelectedAddress={setCurrentSelectedAddress}
         />
         <div className="flex flex-col gap-4">
-          {cartItems?.items?.map((item) => (
+          {itemsToCheckout.map((item) => (
             <UserCartItemsContent key={item.productId} cartItem={item} />
           ))}
+
           <div className="mt-8 space-y-4">
             <div className="flex justify-between">
               <span className="font-bold">Total</span>
-              <span className="font-bold">${totalCartAmount}</span>
+              <span className="font-bold">${totalAmount}</span>
             </div>
           </div>
-
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <Button className="w-full" onClick={() => setIsDialogOpen(true)}>
@@ -142,11 +173,10 @@ const navigate = useNavigate()
               </Button>
             </DialogTrigger>
             <DialogContent>
-              <DialogTitle className="text-lg font-semibold">
-                Select Payment Method
-              </DialogTitle>
-              <DialogDescription className="mb-0">
-                Please choose your preferred payment method to complete the checkout.
+              <DialogTitle>Select Payment Method</DialogTitle>
+              <DialogDescription>
+                Please choose your preferred payment method to complete the
+                checkout.
               </DialogDescription>
               <RadioGroup
                 value={paymentMethod}
@@ -164,10 +194,7 @@ const navigate = useNavigate()
               </RadioGroup>
 
               <DialogFooter>
-                <Button
-                  onClick={handleCheckout}
-                  className="w-full"
-                >
+                <Button onClick={handleCheckout} className="w-full">
                   Continue with {paymentMethod === 'paypal' ? 'PayPal' : 'COD'}
                 </Button>
               </DialogFooter>
