@@ -69,7 +69,8 @@ function ShoppingOrders() {
                           orderItem?.orderStatus === "confirmed"
                             ? "bg-green-500"
                             : orderItem?.orderStatus === "rejected"
-                            ? "bg-red-600"
+                            ? "bg-red-600": orderItem?.orderStatus === "cancelled"
+                            ? "bg-orange-600"
                             : "bg-black"
                         }`}
                       >
