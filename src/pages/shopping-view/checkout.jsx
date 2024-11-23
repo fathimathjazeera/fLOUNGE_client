@@ -27,12 +27,10 @@ function ShoppingCheckout() {
   const dispatch = useDispatch();
   const { toast } = useToast();
   const navigate = useNavigate();
-
+  console.log(selectedProduct, 'selacted');
   const [currentSelectedAddress, setCurrentSelectedAddress] = useState(null);
   const [paymentMethod, setPaymentMethod] = useState('COD');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-
-  // Use cart items directly if no selectedProduct
   const itemsToCheckout = selectedProduct
     ? [
         {
@@ -69,7 +67,6 @@ function ShoppingCheckout() {
       });
       return;
     }
-  
     if (!currentSelectedAddress) {
       toast({
         title: 'Please select an address to proceed.',
@@ -77,9 +74,10 @@ function ShoppingCheckout() {
       });
       return;
     }
-  
     const orderData = {
       userId: user?.id,
+      cartId: selectedProduct ? undefined : cartItems?._id,
+      productId: selectedProduct ? selectedProduct._id : undefined,
       cartItems: itemsToCheckout.map((item) => ({
         productId: item.productId,
         title: item.title,
@@ -101,16 +99,13 @@ function ShoppingCheckout() {
       totalAmount,
       orderDate: new Date(),
     };
-  
+
     if (paymentMethod === 'paypal') {
       console.log('Payment method is PayPal');
       dispatch(createNewOrder(orderData)).then((data) => {
-        console.log('Order creation response:', data);
         if (data?.payload?.success) {
-          // Check if approvalURL is now available in the Redux store or response
           const approvalURL = data?.payload?.approvalURL;
           if (approvalURL) {
-            // Redirect to PayPal approval page
             window.location.href = approvalURL;
           } else {
             toast({
@@ -123,7 +118,7 @@ function ShoppingCheckout() {
     } else if (paymentMethod === 'COD') {
       orderData.paymentStatus = 'pending';
       orderData.orderStatus = 'placed';
-  
+
       dispatch(createNewOrder(orderData)).then((data) => {
         if (data?.payload?.success) {
           toast({
@@ -139,7 +134,6 @@ function ShoppingCheckout() {
       });
     }
   }
-  
 
   return (
     <div className="flex flex-col">

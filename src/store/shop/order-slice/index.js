@@ -25,13 +25,14 @@ export const createNewOrder = createAsyncThunk(
 
 export const capturePayment = createAsyncThunk(
   '/order/capturePayment',
-  async ({ paymentId, payerId, orderId }) => {
+  async ({ paymentId, payerId, orderId,productId }) => {
     const response = await axios.post(
       'http://localhost:5000/api/shop/order/capture',
       {
         paymentId,
         payerId,
         orderId,
+        productId
       }
     );
 
@@ -75,7 +76,7 @@ const shoppingOrderSlice = createSlice({
         state.isLoading = true;
       })
       .addCase(createNewOrder.fulfilled, (state, action) => {
-        console.log(action.payload.approvalURL, 'aproval');
+        console.log(action.payload, 'aproval');
         state.isLoading = false;
         state.approvalURL = action.payload.approvalURL;
         state.orderId = action.payload.orderId;

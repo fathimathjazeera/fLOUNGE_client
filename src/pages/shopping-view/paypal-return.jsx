@@ -1,7 +1,7 @@
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { capturePayment } from "@/store/shop/order-slice";
 import { useEffect } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useLocation } from "react-router-dom";
 
 function PaypalReturnPage() {
@@ -10,15 +10,17 @@ function PaypalReturnPage() {
   const params = new URLSearchParams(location.search);
   const paymentId = params.get("paymentId");
   const payerId = params.get("PayerID");
+const {user} = useSelector(state=> state.auth)
 
   useEffect(() => {
     if (paymentId && payerId) {
       const orderId = JSON.parse(sessionStorage.getItem("currentOrderId"));
-
-      dispatch(capturePayment({ paymentId, payerId, orderId })).then((data) => {
+      const productId = JSON.parse(sessionStorage.getItem("currentProductId"));
+const userId = user?.id
+      dispatch(capturePayment({ paymentId, payerId, orderId,productId, userId})).then((data) => {
         if (data?.payload?.success) {
-          console.log("hitted capture")
           sessionStorage.removeItem("currentOrderId");
+          sessionStorage.removeItem("currentProductId");
           window.location.href = "/shop/payment-success";
         }
       });

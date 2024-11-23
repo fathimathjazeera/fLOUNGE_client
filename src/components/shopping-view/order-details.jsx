@@ -3,11 +3,13 @@ import { Badge } from "../ui/badge";
 import { DialogContent } from "../ui/dialog";
 import { Label } from "../ui/label";
 import { Separator } from "../ui/separator";
+import { Button } from "../ui/button";
 
 function ShoppingOrderDetailsView({ orderDetails }) {
   const { user } = useSelector((state) => state.auth);
 
   return (
+    <>
     <DialogContent className="sm:max-w-[600px]">
       <div className="grid gap-6">
         <div className="grid gap-2">
@@ -39,7 +41,8 @@ function ShoppingOrderDetailsView({ orderDetails }) {
                   orderDetails?.orderStatus === "confirmed"
                     ? "bg-green-500"
                     : orderDetails?.orderStatus === "rejected"
-                    ? "bg-red-600"
+                    ? "bg-red-600" :orderDetails?.orderStatus === "cancelled"
+                    ? "bg-orange-600"
                     : "bg-black"
                 }`}
               >
@@ -76,10 +79,32 @@ function ShoppingOrderDetailsView({ orderDetails }) {
               <span>{orderDetails?.addressInfo?.phone}</span>
               <span>{orderDetails?.addressInfo?.notes}</span>
             </div>
+            <Button>
+              Cancel order
+            </Button>
           </div>
         </div>
       </div>
     </DialogContent>
+     {isModalOpen && (
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Cancel Order</DialogTitle>
+          </DialogHeader>
+          <p>Are you sure you want to cancel this order?</p>
+          <DialogFooter>
+            <Button onClick={confirmCancelOrder} className="bg-red-600">
+              Yes, Cancel
+            </Button>
+            <Button variant="outline" onClick={() => setIsModalOpen(false)}>
+              No
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    )}
+    </>
   );
 }
 

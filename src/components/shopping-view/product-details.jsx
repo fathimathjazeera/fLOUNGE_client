@@ -60,7 +60,11 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
     });
   }
 
-  function handleBuyItem(getCurrentProductId, getTotalStock) {
+  function handleBuyItem(getCurrentProductId) {
+    sessionStorage.setItem(
+      'currentProductId',
+      JSON.stringify(getCurrentProductId)
+    );
     navigate('/shop/checkout', { state: productDetails });
   }
 
@@ -167,7 +171,7 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
                   className="w-full"
                   onClick={() =>
                     handleBuyItem(
-                      productDetails
+                      productDetails?._id
                     )
                   }
                 >
