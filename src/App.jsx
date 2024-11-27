@@ -23,6 +23,7 @@ import PaypalReturnPage from './pages/shopping-view/paypal-return';
 import PaymentSuccessPage from './pages/shopping-view/payment-success';
 import SearchProducts from './pages/shopping-view/search';
 import OrderSuccess from './components/shopping-view/order-success';
+import ProductDetailsDialog from './components/shopping-view/product-details';
 
 function App() {
   const { user, isAuthenticated, isLoading } = useSelector(
@@ -84,6 +85,7 @@ function App() {
         >
           <Route path="home" element={<ShoppingHome />} />
           <Route path="listing" element={<ShoppingListing />} />
+          <Route path="product/:id" element={<ProductDetailsDialog />} />
           <Route path="checkout" element={<ShoppingCheckout />} />
           <Route path="account" element={<ShoppingAccount />} />
           <Route path="paypal-return" element={<PaypalReturnPage />} />

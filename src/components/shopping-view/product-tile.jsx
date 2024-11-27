@@ -2,15 +2,16 @@ import { Card, CardContent, CardFooter } from "../ui/card";
 import { Button } from "../ui/button";
 import { brandOptionsMap, categoryOptionsMap } from "@/config";
 import { Badge } from "../ui/badge";
+import { useNavigate } from "react-router-dom";
 
 function ShoppingProductTile({
   product,
-  handleGetProductDetails,
   handleAddtoCart,
 }) {
+  const navigate= useNavigate()
   return (
     <Card className="w-full max-w-sm mx-auto">
-      <div onClick={() => handleGetProductDetails(product?._id)}>
+      <div onClick={() => navigate(`/shop/product/${product?._id}`)}>
         <div className="relative">
           <img
             src={product?.image}
