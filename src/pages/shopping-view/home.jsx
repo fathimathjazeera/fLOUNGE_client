@@ -122,19 +122,25 @@ function ShoppingHome() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <div className="relative w-full h-[600px] overflow-hidden">
-        {featureImageList && featureImageList.length > 0
+<div className="relative w-full h-[600px] overflow-hidden md:h-[400px] sm:h-[300px]">
+{featureImageList && featureImageList.length > 0
           ? featureImageList.map((slide, index) => (
-              <img
-                src={slide?.image}
-                key={index}
-                className={`${
-                  index === currentSlide ? "opacity-100" : "opacity-0"
-                } absolute top-0 left-0 w-full h-full object-cover transition-opacity duration-1000`}
-              />
+            <img
+            src={slide?.image}
+            key={index}
+            className={`${
+              index === currentSlide ? "opacity-100" : "opacity-0"
+            } absolute top-0 left-0 w-full h-full object-cover transition-opacity duration-1000`}
+            style={{
+              maxWidth: "100%",
+              height: "auto", // Ensures proper scaling
+            }}
+            alt={`Feature Slide ${index + 1}`}
+          />
+          
             ))
           : null}
-        <Button
+       <Button
           variant="outline"
           size="icon"
           onClick={() =>
@@ -144,7 +150,7 @@ function ShoppingHome() {
                 featureImageList.length
             )
           }
-          className="absolute top-1/2 left-4 transform -translate-y-1/2 bg-white/80"
+          className="absolute top-1/2 left-4 transform -translate-y-1/2 bg-white/80 p-2 sm:p-1"
         >
           <ChevronLeftIcon className="w-4 h-4" />
         </Button>
@@ -156,7 +162,7 @@ function ShoppingHome() {
               (prevSlide) => (prevSlide + 1) % featureImageList.length
             )
           }
-          className="absolute top-1/2 right-4 transform -translate-y-1/2 bg-white/80"
+          className="absolute top-1/2 right-4 transform -translate-y-1/2 bg-white/80 p-2 sm:p-1"
         >
           <ChevronRightIcon className="w-4 h-4" />
         </Button>
