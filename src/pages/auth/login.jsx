@@ -1,14 +1,14 @@
-import CommonForm from "@/components/common/form";
-import { useToast } from "@/components/ui/use-toast";
-import { loginFormControls } from "@/config";
-import { loginUser } from "@/store/auth-slice";
-import { useState } from "react";
-import { useDispatch } from "react-redux";
-import { Link } from "react-router-dom";
+import CommonForm from '@/components/common/form';
+import { useToast } from '@/components/ui/use-toast';
+import { loginFormControls } from '@/config';
+import { loginUser } from '@/store/auth-slice';
+import { useState } from 'react';
+import { useDispatch } from 'react-redux';
+import { Link } from 'react-router-dom';
 
 const initialState = {
-  email: "",
-  password: "",
+  email: '',
+  password: '',
 };
 
 function AuthLogin() {
@@ -27,7 +27,7 @@ function AuthLogin() {
       } else {
         toast({
           title: data?.payload?.message,
-          variant: "destructive",
+          variant: 'destructive',
         });
       }
     });
@@ -51,7 +51,7 @@ function AuthLogin() {
       </div>
       <CommonForm
         formControls={loginFormControls}
-        buttonText={"Sign In"}
+        buttonText={'Sign In'}
         formData={formData}
         setFormData={setFormData}
         onSubmit={onSubmit}

@@ -167,9 +167,8 @@ function ShoppingCheckout() {
               </Button>
             </DialogTrigger>
             <DialogContent>
-              <DialogTitle>Select Payment Method</DialogTitle>
               <DialogDescription>
-                Please choose your preferred payment method to complete the
+               Your preferred payment method to complete the
                 checkout.
               </DialogDescription>
               <RadioGroup
@@ -177,10 +176,7 @@ function ShoppingCheckout() {
                 onValueChange={setPaymentMethod}
                 className="space-y-2 flex flex-col"
               >
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="paypal" id="paypal" />
-                  <Label htmlFor="paypal">Pay with PayPal</Label>
-                </div>
+                
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="COD" id="COD" />
                   <Label htmlFor="COD">Pay with Cash on Delivery (COD)</Label>

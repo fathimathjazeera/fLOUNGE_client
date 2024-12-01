@@ -66,11 +66,16 @@ function ProductDetailsDialog() {
   }
 
   function handleBuyItem(getCurrentProductId) {
-    sessionStorage.setItem(
-      'currentProductId',
-      JSON.stringify(getCurrentProductId)
-    );
-    navigate('/shop/checkout', { state: productDetails });
+    if(!user){
+navigate('/auth/login')
+    }else{
+      sessionStorage.setItem(
+        'currentProductId',
+        JSON.stringify(getCurrentProductId)
+      );
+      navigate('/shop/checkout', { state: productDetails });
+    }
+    
   }
 
 

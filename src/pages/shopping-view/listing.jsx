@@ -38,20 +38,24 @@ function createSearchParamsHelper(filterParams) {
 }
 
 function ShoppingListing() {
+
   const dispatch = useDispatch();
   const { productList, productDetails } = useSelector(
     (state) => state.shopProducts
   );
   const { cartItems } = useSelector((state) => state.shopCart);
   const { user } = useSelector((state) => state.auth);
+
   const [filters, setFilters] = useState({});
   const [sort, setSort] = useState(null);
   const [searchParams, setSearchParams] = useSearchParams();
   const [openDetailsDialog, setOpenDetailsDialog] = useState(false);
   const { toast } = useToast();
 
-  const categorySearchParam = searchParams.get("category");
+console.log(user,"from shoplisting")
 
+
+  const categorySearchParam = searchParams.get("category");
   function handleSort(value) {
     setSort(value);
   }
@@ -81,7 +85,12 @@ function ShoppingListing() {
  
 
   function handleAddtoCart(getCurrentProductId, getTotalStock) {
-    console.log(cartItems);
+    if(!user){
+      toast({
+        title: "Please log in to add to your cart"
+      })
+    }else{
+      console.log(cartItems);
     let getCartItems = cartItems.items || [];
 
     if (getCartItems.length) {
@@ -115,6 +124,8 @@ function ShoppingListing() {
         });
       }
     });
+    }
+    
   }
 
   useEffect(() => {
