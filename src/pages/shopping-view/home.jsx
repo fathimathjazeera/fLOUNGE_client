@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/button';
+import cartImage from '../../assets/cart-image.jpg'
 import {
   Airplay,
   BabyIcon,
@@ -47,8 +48,8 @@ const brandsWithIcon = [
 ];
 
 const smallerScreenImg = [
-  { image: 'https://www.searchenginejournal.com/wp-content/uploads/2022/08/google-shopping-ads-6304dccb7a49e-sej.png' },
-  { image: 'https://img.freepik.com/free-photo/surprised-girl-pink-culottes-posing-with-trolley-full-multi-colored-packages-with-new-clothes_197531-14251.jpg' },
+  { image: cartImage},
+  { image: 'https://st4.depositphotos.com/4678277/40811/i/450/depositphotos_408110334-stock-photo-full-length-body-size-view.jpg' },
   { image: 'https://st4.depositphotos.com/4678277/40811/i/450/depositphotos_408110334-stock-photo-full-length-body-size-view.jpg' },
 ];
 
