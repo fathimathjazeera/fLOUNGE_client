@@ -25,7 +25,9 @@ function AdminOrdersView() {
   const dispatch = useDispatch();
 
   function handleFetchOrderDetails(getId) {
-    dispatch(getOrderDetailsForAdmin(getId));
+    dispatch(getOrderDetailsForAdmin(getId)).then((data)=>{
+      console.log(data,"admin")
+    })
   }
 
   useEffect(() => {

@@ -243,7 +243,6 @@ function ShoppingHome() {
           </div>
         </section>
       </div>
-      {openDetailsDialog && <ProductDetailsDialog />}
 
     </>
   );

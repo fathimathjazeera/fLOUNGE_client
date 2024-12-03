@@ -1,4 +1,5 @@
 import ProductFilter from "@/components/shopping-view/filter";
+import ProductFilterModal from "@/components/shopping-view/filter-modal"; // Import the modal filter component
 import ProductDetailsDialog from "@/components/shopping-view/product-details";
 import ShoppingProductTile from "@/components/shopping-view/product-tile";
 import { Button } from "@/components/ui/button";
@@ -38,7 +39,6 @@ function createSearchParamsHelper(filterParams) {
 }
 
 function ShoppingListing() {
-
   const dispatch = useDispatch();
   const { productList, productDetails } = useSelector(
     (state) => state.shopProducts
@@ -52,16 +52,16 @@ function ShoppingListing() {
   const [openDetailsDialog, setOpenDetailsDialog] = useState(false);
   const { toast } = useToast();
 
-console.log(user,"from shoplisting")
-
 
   const categorySearchParam = searchParams.get("category");
+  
   function handleSort(value) {
     setSort(value);
   }
 
   function handleFilter(getSectionId, getCurrentOption) {
     let cpyFilters = { ...filters };
+    console.log(getSectionId,getCurrentOption,cpyFilters,"filterss")
     const indexOfCurrentSection = Object.keys(cpyFilters).indexOf(getSectionId);
 
     if (indexOfCurrentSection === -1) {
@@ -82,50 +82,47 @@ console.log(user,"from shoplisting")
     sessionStorage.setItem("filters", JSON.stringify(cpyFilters));
   }
 
- 
-
   function handleAddtoCart(getCurrentProductId, getTotalStock) {
-    if(!user){
+    if (!user) {
       toast({
-        title: "Please log in to add to your cart"
-      })
-    }else{
+        title: "Please log in to add to your cart",
+      });
+    } else {
       console.log(cartItems);
-    let getCartItems = cartItems.items || [];
+      let getCartItems = cartItems.items || [];
 
-    if (getCartItems.length) {
-      const indexOfCurrentItem = getCartItems.findIndex(
-        (item) => item.productId === getCurrentProductId
-      );
-      if (indexOfCurrentItem > -1) {
-        const getQuantity = getCartItems[indexOfCurrentItem].quantity;
-        if (getQuantity + 1 > getTotalStock) {
-          toast({
-            title: `Only ${getQuantity} quantity can be added for this item`,
-            variant: "destructive",
-          });
+      if (getCartItems.length) {
+        const indexOfCurrentItem = getCartItems.findIndex(
+          (item) => item.productId === getCurrentProductId
+        );
+        if (indexOfCurrentItem > -1) {
+          const getQuantity = getCartItems[indexOfCurrentItem].quantity;
+          if (getQuantity + 1 > getTotalStock) {
+            toast({
+              title: `Only ${getQuantity} quantity can be added for this item`,
+              variant: "destructive",
+            });
 
-          return;
+            return;
+          }
         }
       }
-    }
 
-    dispatch(
-      addToCart({
-        userId: user?.id,
-        productId: getCurrentProductId,
-        quantity: 1,
-      })
-    ).then((data) => {
-      if (data?.payload?.success) {
-        dispatch(fetchCartItems(user?.id));
-        toast({
-          title: "Product is added to cart",
-        });
-      }
-    });
+      dispatch(
+        addToCart({
+          userId: user?.id,
+          productId: getCurrentProductId,
+          quantity: 1,
+        })
+      ).then((data) => {
+        if (data?.payload?.success) {
+          dispatch(fetchCartItems(user?.id));
+          toast({
+            title: "Product is added to cart",
+          });
+        }
+      });
     }
-    
   }
 
   useEffect(() => {
@@ -151,11 +148,15 @@ console.log(user,"from shoplisting")
     if (productDetails !== null) setOpenDetailsDialog(true);
   }, [productDetails]);
 
-  console.log(productList, "productListproductListproductList");
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] gap-6 p-4 md:p-6">
+      <div className="md:hidden flex justify-end">
+        <ProductFilterModal filters={filters} handleFilter={handleFilter} />
+      </div>
+
       <ProductFilter filters={filters} handleFilter={handleFilter} />
+
       <div className="bg-background w-full rounded-lg shadow-sm">
         <div className="p-4 border-b flex items-center justify-between">
           <h2 className="text-lg font-extrabold">All Products</h2>
@@ -193,6 +194,7 @@ console.log(user,"from shoplisting")
           {productList && productList.length > 0
             ? productList.map((productItem) => (
                 <ShoppingProductTile
+                  key={productItem.id} 
                   product={productItem}
                   handleAddtoCart={handleAddtoCart}
                 />

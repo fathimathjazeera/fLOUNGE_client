@@ -21,7 +21,7 @@ export const getOrderDetailsForAdmin = createAsyncThunk(
   "/order/getOrderDetailsForAdmin",
   async (id) => {
     const response = await axios.get(
-      `${import.meta.env.VITE_API_URL}/admin/orders/details/${id}`
+      `${import.meta.env.VITE_API_URL}/api/admin/orders/details/${id}`
     );
 
     return response.data;
