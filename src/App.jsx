@@ -32,8 +32,7 @@ function App() {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    const token = JSON.parse(sessionStorage.getItem('token'))
-    dispatch(checkAuth(token));
+    dispatch(checkAuth());
   }, [dispatch]);
 
 
@@ -81,6 +80,7 @@ function App() {
           <Route path="paypal-return" element={<PaypalReturnPage />} />
           <Route path="payment-success" element={<PaymentSuccessPage />} />
           <Route path="order-success" element={<OrderSuccess />} />
+  {/* // unauthenticated // */}
           <Route path="search" element={<SearchProducts />} />
 
           <Route path="account" element={<ShoppingAccount />} />
