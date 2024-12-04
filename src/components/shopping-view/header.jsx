@@ -1,11 +1,4 @@
-import {
-  Filter,
-  House,
-  LogOut,
-  Menu,
-  ShoppingCart,
-  UserCog,
-} from 'lucide-react';
+import { Filter, House, LogOut, Menu, ShoppingCart, UserCog } from 'lucide-react';
 import {
   Link,
   useLocation,
@@ -25,7 +18,7 @@ import {
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu';
 import { Avatar, AvatarFallback } from '../ui/avatar';
-import { logoutUser } from '@/store/auth-slice';
+import { logoutUser, resetTokenAndCredentials } from '@/store/auth-slice';
 import UserCartWrapper from './cart-wrapper';
 import { useEffect, useState } from 'react';
 import { fetchCartItems } from '@/store/shop/cart-slice';
@@ -55,10 +48,11 @@ function MenuItems({ closeSidebar }) {
           new URLSearchParams(`?category=${getCurrentMenuItem.id}`)
         )
       : navigate(getCurrentMenuItem.path);
-    if (closeSidebar) {
-      closeSidebar();
-    }
+      if (closeSidebar) {
+        closeSidebar();
+      }
   }
+
 
   return (
     <nav className="flex flex-col mb-3 lg:mb-0 lg:items-center gap-6 lg:flex-row">
@@ -75,6 +69,7 @@ function MenuItems({ closeSidebar }) {
   );
 }
 
+
 function HeaderRightContent() {
   const { user } = useSelector((state) => state.auth);
   const { cartItems } = useSelector((state) => state.shopCart);
@@ -83,17 +78,19 @@ function HeaderRightContent() {
   const dispatch = useDispatch();
 
   function handleLogout() {
-    dispatch(logoutUser()).then(() => {
-      navigate('/auth/login');
-    });
+    // dispatch(logoutUser());
+    dispatch(resetTokenAndCredentials())
+    sessionStorage.clear()
+    navigate('auth/login')
   }
-  
+
 
   useEffect(() => {
-    if (user) {
+    if(user){
       dispatch(fetchCartItems(user?.id));
     }
   }, [dispatch]);
+
 
   return (
     <div className="flex lg:items-center lg:flex-row flex-col gap-4">
@@ -155,9 +152,32 @@ function HeaderRightContent() {
   );
 }
 
-function ShoppingHeader() {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
+
+function ShoppingHeader() {
+  const { isAuthenticated } = useSelector((state) => state.auth);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const location = useLocation();
+
+  const isListingPage = location.pathname.includes("listing");
+ // Define the filters state
+ const [filters, setFilters] = useState({
+  category: [],
+  brand: [],
+});
+
+// Handle filter changes
+const handleFilter = (section, value) => {
+  setFilters((prevFilters) => {
+    const newFilters = { ...prevFilters };
+    if (newFilters[section].includes(value)) {
+      newFilters[section] = newFilters[section].filter((item) => item !== value);
+    } else {
+      newFilters[section].push(value);
+    }
+    return newFilters;
+  });
+};
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background">
       <div className="flex h-16 items-center justify-between px-4 md:px-6">
@@ -165,6 +185,19 @@ function ShoppingHeader() {
           <House className="h-6 w-6" />
           <span className="font-bold">fLOUNGE</span>
         </Link>
+        {isListingPage && (
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button variant="outline" size="icon">
+                <Filter className="h-6 w-6" />
+                <span className="sr-only">Filter</span>
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+            <ProductFilterModal  filters={filters} handleFilter={handleFilter} />
+            </DialogContent>
+          </Dialog>
+        )}
 
         <Sheet open={isSidebarOpen} onOpenChange={setIsSidebarOpen}>
           <SheetTrigger asChild>
@@ -175,7 +208,6 @@ function ShoppingHeader() {
           </SheetTrigger>
           <SheetContent side="left" className="w-full max-w-xs">
             <MenuItems closeSidebar={() => setIsSidebarOpen(false)} />
-
             <HeaderRightContent />
           </SheetContent>
         </Sheet>

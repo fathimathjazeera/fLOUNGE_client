@@ -26,17 +26,17 @@ import OrderSuccess from './components/shopping-view/order-success';
 import ProductDetailsDialog from './components/shopping-view/product-details';
 
 function App() {
-  const { user, isAuthenticated, isLoading } = useSelector(
+  const { user, isAuthenticated } = useSelector(
     (state) => state.auth
   );
   const dispatch = useDispatch();
 
   useEffect(() => {
-    dispatch(checkAuth());
+    const token = JSON.parse(sessionStorage.getItem('token'))
+    dispatch(checkAuth(token));
   }, [dispatch]);
 
 
-  console.log(isLoading, user, 'from app');
 
   return (
     <div className="flex flex-col overflow-hidden bg-white">
@@ -81,7 +81,6 @@ function App() {
           <Route path="paypal-return" element={<PaypalReturnPage />} />
           <Route path="payment-success" element={<PaymentSuccessPage />} />
           <Route path="order-success" element={<OrderSuccess />} />
-  {/* // unauthenticated // */}
           <Route path="search" element={<SearchProducts />} />
 
           <Route path="account" element={<ShoppingAccount />} />
