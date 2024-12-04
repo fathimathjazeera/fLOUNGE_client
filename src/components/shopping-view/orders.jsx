@@ -30,8 +30,11 @@ function ShoppingOrders() {
   }
 
   useEffect(() => {
+  if(user?.id){
     dispatch(getAllOrdersByUserId(user?.id));
-  }, [dispatch]);
+  }
+  }, [dispatch,user?.id]);
+
 
   useEffect(() => {
     if (orderDetails !== null) setOpenDetailsDialog(true);
